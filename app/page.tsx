@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import ReactFlow, {
   Background,
   Controls,
@@ -22,38 +22,50 @@ import { SchemaSidebar } from "@/components/schema-sidebar"
 import { TableNode } from "@/components/table-node"
 import { TableFlow } from "@/types/schema"
 
-const nodeTypes = {
-  tableNode: TableNode,
-}
-
-// Custom edge style
-const edgeOptions = {
-  type: 'bezier',
-  style: { stroke: '#ff9f43', strokeWidth: 2 },
-  markerStart: {
-    type: MarkerType.Arrow,
-    color: '#ff9f43',
-    width: 10,
-    height: 10,
-    strokeWidth: 2,
-  },
-  markerEnd: {
-    type: MarkerType.Arrow,
-    color: '#ff9f43',
-    width: 20,
-    height: 20,
-    strokeWidth: 2,
-  },
-}
-
 export default function SchemaVisualizer() {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
+  const edgeOptions = useMemo(() => ({
+    type: 'smoothstep',
+    style: { 
+      stroke: '#ff9f43', 
+      strokeWidth: 2,
+    },
+    markerStart: {
+      type: MarkerType.Arrow,
+      color: '#ff9f43',
+      width: 5,
+      height: 5,
+    },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: '#ff9f43',
+      width: 15,
+      height: 15,
+    },
+    animated: true,
+  }), [])
+
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      const newEdge: Edge = {
+        ...params,
+        id: `${params.source}-${params.sourceHandle}-${params.target}-${params.targetHandle}`,
+        type: 'smoothstep',
+        animated: true,
+        style: edgeOptions.style,
+        markerEnd: edgeOptions.markerEnd,
+        markerStart: edgeOptions.markerStart,
+        source: params.source || '',
+        target: params.target || '',
+        sourceHandle: params.sourceHandle || undefined,
+        targetHandle: params.targetHandle || undefined,
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
+    [setEdges, edgeOptions]
   )
 
   const onDragStart = (event: React.DragEvent, table: TableFlow) => {
@@ -72,9 +84,25 @@ export default function SchemaVisualizer() {
       event.dataTransfer.getData("application/json")
     ) as TableFlow
 
-    // Check if table already exists
-    if (nodes.some((node) => node.id === table.id)) {
-      alert("This table already exists in the diagram")
+    const existingNode = nodes.find((node) => node.id === table.id)
+    if (existingNode) {
+      // Highlight the existing node
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === table.id
+            ? { ...node, style: { ...node.style, boxShadow: '0 0 0 2px #3b82f6' } }
+            : node
+        )
+      )
+      setTimeout(() => {
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === table.id
+              ? { ...node, style: { ...node.style, boxShadow: 'none' } }
+              : node
+          )
+        )
+      }, 2000)
       return
     }
 
@@ -98,6 +126,10 @@ export default function SchemaVisualizer() {
     setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id))
   }, [setNodes, setEdges])
 
+  const nodeTypes = useMemo(() => ({
+    tableNode: (props:any) => <TableNode {...props} onRemove={onRemoveNode} />,
+  }), [onRemoveNode])
+
   return (
     <div className="flex h-screen">
       {sidebarOpen && <SchemaSidebar onDragStart={onDragStart} onClose={() => setSidebarOpen(false)} />}
@@ -112,7 +144,10 @@ export default function SchemaVisualizer() {
             nodeTypes={nodeTypes}
             connectionMode={ConnectionMode.Loose}
             defaultEdgeOptions={edgeOptions}
+            connectionLineStyle={{ stroke: '#ff9f43', strokeWidth: 2 }}
             fitView
+            snapToGrid
+            snapGrid={[15, 15]}
           >
             <Background />
             <Controls position="top-right">

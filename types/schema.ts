@@ -1,35 +1,61 @@
+import { Connection as ReactFlowConnection } from 'reactflow';
+
 export interface Column {
-  column_id: string
-  name: string
-  column_data_type: string
+  column_id: string;
+  name: string;
+  column_data_type: string;
 }
 
-export interface TableFlow {
-  id: string
-  name: string
-  columns: Column[]
+export interface Table {
+  id: string;
+  name: string;
+  columns: Column[];
 }
 
-export interface TableNode extends TableFlow {
+export interface TableNode extends Table {
   position: {
-    x: number
-    y: number
-  }
+    x: number;
+    y: number;
+  };
 }
 
-export interface Connection {
-  id: string
-  source: string
-  sourceHandle: string
-  target: string
-  targetHandle: string
+export type TableFlow = Table;
+
+export type Connection = ReactFlowConnection;
+
+// Additional types that might be useful for the schema visualizer
+
+export interface Position {
+  x: number;
+  y: number;
 }
 
-export interface SidebarItem {
-  id: string
-  name: string
-  type: 'folder' | 'table'
-  children?: SidebarItem[]
-  columns?: Column[]
+export interface Size {
+  width: number;
+  height: number;
 }
 
+export interface NodeData {
+  label: string;
+  columns: Column[];
+}
+
+export interface Edge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle: string;
+  targetHandle: string;
+  type?: string;
+}
+
+export interface SchemaVisualizerState {
+  nodes: TableNode[];
+  edges: Edge[];
+}
+
+export interface DragItem {
+  type: string;
+  id: string;
+  data: Table;
+}
