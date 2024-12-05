@@ -18,7 +18,6 @@ export function TableNode({ data, id, onRemove }: TableNodeProps) {
   const [scrollTop, setScrollTop] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Update node internals when scroll position changes
   useEffect(() => {
     updateNodeInternals(id)
   }, [id, scrollTop, updateNodeInternals])
@@ -45,22 +44,19 @@ export function TableNode({ data, id, onRemove }: TableNodeProps) {
         </Button>
       </div>
 
-      {/* Columns */}
       <div>
-        {/* Column Header */}
         <div className="flex px-3 py-2 bg-blue-50/80 text-sm font-bold text-muted-foreground border-b">
           <div className="w-[120px]">Column</div>
           <div className="flex-1">Data Type</div>
         </div>
 
-        {/* Column List */}
         <div 
           ref={containerRef}
           className="overflow-visible"
           onScroll={handleScroll}
         >
           {data.columns?.map((column, index) => {
-            const top = index * 36 - scrollTop // 36px is the height of each row
+            const top = index * 36 - scrollTop 
             
             return (
               <div
