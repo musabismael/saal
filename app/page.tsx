@@ -45,7 +45,7 @@ export default function SchemaVisualizer() {
       width: 15,
       height: 15,
     },
-    animated: true,
+    animated: false,
   }), [])
 
   const onConnect = useCallback(
@@ -54,7 +54,7 @@ export default function SchemaVisualizer() {
         ...params,
         id: `${params.source}-${params.sourceHandle}-${params.target}-${params.targetHandle}`,
         type: 'smoothstep',
-        animated: true,
+        animated: false,
         style: edgeOptions.style,
         markerEnd: edgeOptions.markerEnd,
         markerStart: edgeOptions.markerStart,
